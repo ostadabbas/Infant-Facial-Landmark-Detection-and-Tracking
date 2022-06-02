@@ -1,0 +1,184 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) Microsoft
+# Licensed under the MIT License.
+# Created by Tianheng Cheng(tianhengcheng@gmail.com)
+# ------------------------------------------------------------------------------
+
+import os
+import pprint
+import argparse
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torch.backends.cudnn as cudnn
+from tensorboardX import SummaryWriter
+from torch.utils.data import DataLoader
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+import lib.models as models
+from lib.config import config, update_config
+from lib.datasets import get_dataset
+from lib.core import function
+from lib.utils import utils
+
+
+def parse_args():
+
+    parser = argparse.ArgumentParser(description='Train Face Alignment')
+
+    parser.add_argument('--cfg', help='experiment configuration filename',
+                        required=True, type=str)
+    parser.add_argument('--model-file', help='model parameters', required=True, 
+                        type=str)
+
+    args = parser.parse_args()
+    update_config(config, args)
+    return args
+
+
+def main():
+
+    args = parse_args()
+
+    logger, final_output_dir, tb_log_dir = \
+        utils.create_logger(config, args.cfg, 'train')
+
+    logger.info(pprint.pformat(args))
+    logger.info(pprint.pformat(config))
+
+    cudnn.benchmark = config.CUDNN.BENCHMARK
+    cudnn.determinstic = config.CUDNN.DETERMINISTIC
+    cudnn.enabled = config.CUDNN.ENABLED
+    
+    config.defrost()
+    config.MODEL.INIT_WEIGHTS = False
+    config.freeze()
+    model = models.get_face_alignment_net(config)
+
+    # copy model files
+    writer_dict = {
+        'writer': SummaryWriter(log_dir=tb_log_dir),
+        'train_global_steps': 0,
+        'valid_global_steps': 0,
+    }
+
+    gpus = list(config.GPUS)
+    model = nn.DataParallel(model, device_ids=gpus).cuda()
+    
+    # load model
+    state_dict = torch.load(args.model_file)
+    if 'state_dict' in state_dict.keys():
+        state_dict = state_dict['state_dict']
+        model.load_state_dict(state_dict)
+    else:
+        model.module.load_state_dict(state_dict)
+        
+    # freeze params
+    for name, param in model.named_parameters():
+        # if ('head' not in name) and ('stage4' not in name) and ('stage3' not in name):
+        if all([(string not in name) for string in config.FINETUNE.UNFROZEN]):
+            param.requires_grad = False
+    
+    # double-check active params
+    for name, param in model.named_parameters():
+        if param.requires_grad == True:
+            print(name, 'requires grad')
+
+    # loss
+    criterion = torch.nn.MSELoss(size_average=True).cuda()
+
+    optimizer = utils.get_optimizer(config, model)
+    best_nme = 100
+    last_epoch = config.FINETUNE.BEGIN_EPOCH
+    if config.FINETUNE.RESUME:
+        model_state_file = os.path.join(final_output_dir,
+                                        'latest.pth')
+        if os.path.islink(model_state_file):
+            checkpoint = torch.load(model_state_file)
+            last_epoch = checkpoint['epoch']
+            best_nme = checkpoint['best_nme']
+            model.load_state_dict(checkpoint['state_dict'])
+            optimizer.load_state_dict(checkpoint['optimizer'])
+            print("=> loaded checkpoint (epoch {})"
+                  .format(checkpoint['epoch']))
+        else:
+            print("=> no checkpoint found")
+
+    if isinstance(config.FINETUNE.LR_STEP, list):
+        lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
+            optimizer, config.FINETUNE.LR_STEP,
+            config.FINETUNE.LR_FACTOR, last_epoch-1
+        )
+    else:
+        lr_scheduler = torch.optim.lr_scheduler.StepLR(
+            optimizer, config.FINETUNE.LR_STEP,
+            config.FINETUNE.LR_FACTOR, last_epoch-1
+        )
+    dataset_type = get_dataset(config)
+    
+    train_set = dataset_type(config, is_train=True)  
+    valid_set = dataset_type(config, is_train=False, validation_index=train_set.validation_index)
+    
+    print('Train set size:', len(train_set))
+    print('Validation set size:', len(valid_set))
+    if config.DATASET.VAL_RATIO > 0 and config.DATASET.TESTSET is not '':
+        print('WARNING: DATASET.VAL_RATIO > 0, so validation set drawn from train CSV, and test CSV ignored')
+
+    train_loader = DataLoader(
+        dataset=train_set,
+        batch_size=config.FINETUNE.BATCH_SIZE_PER_GPU*len(gpus),
+        shuffle=config.FINETUNE.SHUFFLE,
+        num_workers=config.WORKERS,
+        pin_memory=config.PIN_MEMORY)
+
+    val_loader = DataLoader(
+        dataset=valid_set,
+        batch_size=config.TEST.BATCH_SIZE_PER_GPU*len(gpus),
+        shuffle=False,
+        num_workers=config.WORKERS,
+        pin_memory=config.PIN_MEMORY
+    )
+
+    for epoch in range(last_epoch, config.FINETUNE.END_EPOCH):
+        lr_scheduler.step()
+
+        function.train(config, train_loader, model, criterion,
+                       optimizer, epoch, writer_dict)
+
+        # evaluate
+        nme, predictions = function.validate(config, val_loader, model,
+                                             criterion, epoch, writer_dict)
+
+        is_best = nme < best_nme
+        best_nme = min(nme, best_nme)
+
+        logger.info('=> saving checkpoint to {}'.format(final_output_dir))
+        print("best:", is_best)
+        utils.save_checkpoint(
+            {"state_dict": model,
+             "epoch": epoch + 1,
+             "best_nme": best_nme,
+             "optimizer": optimizer.state_dict(),
+             }, predictions, is_best, final_output_dir, 'checkpoint_{}.pth'.format(epoch))
+
+    final_model_state_file = os.path.join(final_output_dir,
+                                          'final_state.pth')
+    logger.info('saving final model state to {}'.format(
+        final_model_state_file))
+    torch.save(model.module.state_dict(), final_model_state_file)
+    writer_dict['writer'].close()
+
+
+if __name__ == '__main__':
+    main()
+
+
+
+
+
+
+
+
+
+
