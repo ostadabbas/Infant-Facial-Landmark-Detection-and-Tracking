@@ -32,10 +32,10 @@ Users of this repository must abide by the respective licenses of any code inclu
 
 ## The InfAnFace dataset
 
-**InfAnFace**, the **Inf**ant **An**notated **Face**s dataset, is the first public dataset of infant faces with facial landmark annotations. It consists of 410 images of infant faces with labels for 68 facial landmark coordinates and various pose attributes. The dataset can be downloaded from [this site](MISSINGLINK). The file structure is as follows:
+**InfAnFace**, the **Inf**ant **An**notated **Face**s dataset, is the first public dataset of infant faces with facial landmark annotations. It consists of 410 images of infant faces with labels for 68 facial landmark coordinates and various pose attributes. The dataset can be accessed [at this site](https://coe.northeastern.edu/Research/AClab/InfAnFace/) or downloaded as a [ZIP file](https://coe.northeastern.edu/Research/AClab/InfAnFace.zip). The file structure is as follows:
 
 ````
-infanface-hrnet-public
+infanface
 -- readme.md
 -- images
    |-- ads
@@ -94,7 +94,7 @@ Our code was developed and tested with Python 3.6, PyTorch 1.0.0, and CUDA 9.0 w
 5. Install 300-W and/or InfAnFace image data by placing subfolders from those datasets (e.g., `/afw`, `/frgc`, etc. from 300-W, or `/ads`, `/google`, etc. from InfAnFace) inside `/data/images`. The CSV files already included in subdirectories of `/data` contain facial landmark annotations for 300-W and InfAnFace, and also define subsets of interest of both datasets, e.g., 300-W Test or InfAnFace Challenging. (Other datasets can be installed by mimicking these configurations.) The final data directory structure should look something like this:
 
 ````
-infanface-hrnet-public
+Infant-Facial-Landmark-Detection-and-Tracking
 -- lib
 -- experiments
 -- tools
