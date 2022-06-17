@@ -135,7 +135,7 @@ Landmark predictions in text format are saved in the corresponding model directo
 
 #### Pretrained model installation and landmark estimation
 
-11. Add the checkpoints for our modified HRNet models, found [here](MISSING-LINK), to `/infanface_pretrained`
+11. Add the checkpoints for our modified HRNet models, which can be downloaded [here](https://drive.google.com/drive/folders/1Gj0aec2MmsRRLpa5JGqxi4sA1G4Sr79Z?usp=sharing), to `/infanface_pretrained`
 12. Test the pretrained checkpoint of our best HRNet-R90JT model on InfAnFace Test data: `python -u tools/test.py --cfg experiments/300w/hrnet-r90jt.yaml --model-file infanface_pretrained/hrnet-r90jt.pth`
 
 As above: Landmark predictions in text format are saved in the corresponding model directory in `/output`. The reported NME results use the interocular normalization. Note that the test set is specified by the YAML configuration file in `/experiments`. 
