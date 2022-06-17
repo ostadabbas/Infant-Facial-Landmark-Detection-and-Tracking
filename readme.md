@@ -76,7 +76,7 @@ InfAnFace Test (200 images) is further split into:
 
 ## Facial landmark estimation models
 
-Here are instructions for training the state-of-the-art infant facial landmark estimation models described in our paper, and for making landmark predictions using these or previously pre-trained models. We include all of the [HRNet](https://github.com/HRNet/HRNet-Facial-Landmark-Detection)-based models from our paper. The best all-around model is **HRNet-R90JT**.
+Here are instructions for training the state-of-the-art infant facial landmark estimation models described in our paper, and for making landmark predictions using these or previously pre-trained models. We include all of the HRNet-based models from our paper. The best all-around model is **HRNet-R90JT**.
 
 Our code was developed and tested with Python 3.6, PyTorch 1.0.0, with NVIDIA P100 GPUs under CUDA 9.0. Many of these instructions overlap with the installation and use of HRNet, so their [guide](https://github.com/HRNet/HRNet-Facial-Landmark-Detection/blob/master/README.md) can serve as a fall-back to ours.
 
