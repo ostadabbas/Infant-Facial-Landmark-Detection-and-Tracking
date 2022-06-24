@@ -91,7 +91,7 @@ Our code was developed and tested with Python 3.6, PyTorch 1.0.0, with NVIDIA P1
 #### Model training 
 
 4. Add the checkpoint for the HRNet model trained for facial landmark estimation on 300-W images, [HR18-300W.pth](https://onedrive.live.com/?authkey=%21AMkPimlmClRvmpw&cid=F7FD0B7F26543CEB&id=F7FD0B7F26543CEB%21112&parId=F7FD0B7F26543CEB%21105&o=OneUp), to `/hrnetv2_pretrained`.
-5. Install 300-W and/or InfAnFace image data by placing subfolders from those datasets (e.g., `/afw`, `/frgc`, etc. from 300-W, or `/ads`, `/google`, etc. from InfAnFace) inside `/data/images`. The CSV files already included in subdirectories of `/data` contain facial landmark annotations for 300-W and InfAnFace, and also define subsets of interest of both datasets, e.g., 300-W Test or InfAnFace Challenging. (Other datasets can be installed by mimicking these configurations.) The final data directory structure should look something like this:
+5. Install 300-W and/or InfAnFace image data by placing subfolders from those datasets (e.g., `/afw`, `/frgc`, etc. from 300-W, or `/ads`, `/google`, etc. from InfAnFace) inside `/data/images`. The CSV files already included in subdirectories of `/data` contain facial landmark annotations for 300-W and InfAnFace, and also define subsets of interest of both datasets, e.g., 300-W Test or InfAnFace Challenging. (Other datasets can be installed by mimicking these configurations. Note that images must be equiped with facial bounding box information, which following HRNet is encoded as `center_w`, `center_h`, and `scale` as described [here](https://github.com/HRNet/HRNet-Facial-Landmark-Detection/issues/3).) The final data directory structure should look something like this:
 
 ````
 Infant-Facial-Landmark-Detection-and-Tracking
