@@ -65,8 +65,8 @@ In order to facilitate training experiments and interpretable testing, we divide
 
 InfAnFace (410 images) is split into suggested training and tests sets based on our collection batches to ensure some level of independence: 
 
-* **InfAnFace Train** (210 images) includes the `ads`, `google2`, and `youtube2`, while
-* **InfAnFace Test** (200 images) includes the `google` and `youtube`.
+* **InfAnFace Train** (210 images) includes `ads`, `google2`, and `youtube2`, while
+* **InfAnFace Test** (200 images) includes `google` and `youtube`.
 
 InfAnFace Test (200 images) is further split into:
 
