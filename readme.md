@@ -83,7 +83,7 @@ Our code was developed and tested with Python 3.6, PyTorch 1.0.0, with NVIDIA P1
 #### Basic installation
 
 1. [Install PyTorch 1.0](https://pytorch.org/)
-2. Clone the project `git clone MISSING LINK`
+2. Clone the project `git clone ostadabbas/Infant-Facial-Landmark-Detection-and-Tracking`
 3. Install requirements `pip install -r requirements.txt`
 
 *Those in just using our pretrained models can skip the next two sections.*
